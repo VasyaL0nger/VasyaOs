@@ -21,11 +21,11 @@ HF_TOKEN = "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"
 
 def ask_free_ai(system_prompt, user_question):
     try:
-        # Используем продвинутую модель Qwen, которая отлично понимает русский язык
+        # ЗАМЕНЕНО: Поставили сверхстабильную модель Zephyr, которая всегда активна
         API_URL = "https://huggingface.co"
         headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         
-        full_prompt = f"<|im_start|>system\n{system_prompt}\n<|im_end|>\n<|im_start|>user\n{user_question}\n<|im_end|>\n<|im_start|>assistant\n"
+        full_prompt = f"<|system|>\n{system_prompt}\n<|user|>\n{user_question}\n<|assistant|>\n"
         
         payload = {
             "inputs": full_prompt,
@@ -37,7 +37,7 @@ def ask_free_ai(system_prompt, user_question):
         if response.status_code == 200:
             res_json = response.json()
             output = res_json[0]['generated_text']
-            clean_answer = output.split("<|im_start|>assistant\n")[-1].replace("<|im_end|>", "").strip()
+            clean_answer = output.split("<|assistant|>\n")[-1].strip()
             return clean_answer
         else:
             return "Мяу... Мой кошачий сервер немного задумался. Нажми кнопку еще раз, я отвечу!"
@@ -105,4 +105,3 @@ if model_choice != "CanvasVasya (Арт)":
                 st.write(f"**Вы:** {user_input}")
                 st.write("**VasyaOS:**")
                 st.success(ai_response)
-
