@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import urllib.parse
 import time
+from g4f.client import Client
 
 # Настройка страницы сайта
 st.set_page_config(page_title="VasyaOS", page_icon="cat", layout="centered")
@@ -15,25 +16,22 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# Исправленная правильная функция текстового ИИ через POST-запрос
+# Сверхнадежная функция текстового ИИ через обходные сервера g4f
 def ask_free_ai(system_prompt, user_question):
     try:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_question}
-        ]
-        # Отправляем структурированный POST-запрос вместо проблемной длинной ссылки
-        response = requests.post(
-            "https://text.pollinations.ai/",
-            json={"messages": messages, "model": "openai-large"},
-            timeout=15
+        client = Client()
+        full_prompt = f"Системная роль: {system_prompt}\n\nПользователь спрашивает: {user_question}\nОтветь коротко, строго на русском языке в соответствии со своей ролью."
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": full_prompt}],
         )
-        if response.status_code == 200 and response.text:
-            return response.text
-        else:
-            return "Мяу... Мой кошачий процессор завис. Пожалуйста, нажми на кнопку еще раз!"
-    except Exception as e:
-        return f"Василий ушел за пельменями на кухню. Нажми кнопку повторно!"
+        answer = response.choices[0].message.content
+        if answer:
+            return answer
+        return "Мяу... Что-то связь оборвалась. Попробуй нажать кнопку отправки еще раз!"
+    except:
+        return "Василий ушел за пельменями на кухню. Пожалуйста, нажми на кнопку еще раз!"
 
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
@@ -69,29 +67,24 @@ elif model_choice == "VasyaLyrics (Поэт)":
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
-    st.info("Генератор картинок. Сюжет можно писать на русском языке — система сама подготовит его для ИИ!")
+    st.info("Генератор картинок. Сюжет можно писать на русском языке!")
     
     user_prompt = st.text_input("Напишите сюжет для картинки:", "Кот Василий ест пельмени у костра")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
             with st.spinner("Василий берет в лапы кисть... Подождите немного..."):
-                # Автоматически переводим русский запрос в понятные теги для англоязычного генератора
-                translation_prompt = f"Translate this prompt into a simple list of english keywords for image generation: '{user_prompt}'. Output ONLY keywords separated by commas, no chat, no intro."
-                english_keywords = ask_free_ai("You are a translator translator.", translation_prompt)
+                # Используем g4f для перевода, так как он надежнее
+                english_keywords = ask_free_ai("You are a translator. Translate the text into english keywords for image generation.", user_prompt)
                 
-                # Если перевод временно сбоит, используем безопасный стандартный промпт
-                if "Ошибка" in english_keywords or "Мяу" in english_keywords or len(english_keywords) > 200:
+                if "Василий ушел" in english_keywords or len(english_keywords) > 150:
                     english_keywords = "cat eating dumplings near fire"
                 
                 seed = int(time.time())
-                # Собираем чистую ссылку для генератора
                 final_prompt = f"fluffy brown tabby cat, green eyes, {english_keywords.strip()}, digital art, cute style, highly detailed"
                 encoded_prompt = urllib.parse.quote(final_prompt)
                 
                 image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&nofeed=true"
-                
-                # Отображаем картинку на сайте
                 st.image(image_url, caption=f"Арт по вашему сюжету: {user_prompt}")
 
 # Работа чата для текстовых моделей
