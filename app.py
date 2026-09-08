@@ -1,4 +1,5 @@
 import streamlit as st
+import urllib.parse
 
 # Настройка страницы сайта
 st.set_page_config(page_title="VasyaOS", page_icon="cat", layout="centered")
@@ -42,10 +43,21 @@ elif model_choice == "VasyaLyrics (Поэт)":
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
-    st.info("Генератор картинок. Скоро здесь можно будет рисовать Васю в космосе!")
-    st.write("Напишите, какую картинку с Васей вы хотите сгенерировать в будущем:")
-    st.text_input("Например: Вася ест пельмени на пляже")
-    st.button("Сгенерировать арт")
+    st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
+    
+    user_prompt = st.text_input("Напишите, какую картинку с Васей вы хотите сгенерировать:", "Кот Василий ест пельмени")
+    
+    if st.button("Сгенерировать арт"):
+        if user_prompt:
+            st.write("---")
+            st.write("Генерирую изображение...")
+            
+            # Кодируем текст для ссылки генератора картинок Pollinations AI
+            encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat named Vasya, green eyes, {user_prompt}, realistic, highly detailed")
+            image_url = f"https://pollinations.ai{encoded_prompt}?width=1024&height=1024&nologo=true&seed=42"
+            
+            # Показываем картинку пользователю
+            st.image(image_url, caption=f"Арт по запросу: {user_prompt}")
 
 
 # Реализация чата (для текстовых моделей)
@@ -58,10 +70,13 @@ if model_choice != "CanvasVasya (Арт)":
             st.write(f"**Вы:** {user_input}")
             st.write("**VasyaOS:**")
             
+            # На следующем шаге мы заменим эти строки на реальный вызов бесплатного ChatGPT/Gemini API
             if model_choice == "VasyaTheCat (Болталка)":
                 st.success(f"Мяу... Чего тебе, человек? Твое '{user_input}' отвлекает меня от сна на кресле. Лучше принеси пельменей!")
             elif model_choice == "VasyaLyrics (Поэт)":
                 st.success(f"Стих на тему '{user_input}':\n\nКот Василий на кровати тихо-тихо спал,\nПро '{user_input}' лениво усом колыхал.\nВдруг почуял запах теплых пельменей —\nИ примчался к кухне тигра побыстрей!")
+            elif model_choice == "VasyaExpert (Вопросы)":
+                st.success(f"Я зафиксировал ваш вопрос: '{user_input}'. Чтобы ответить на него уникальным текстом из базы данных Василия, нам осталось подключить бесплатный текстовый токен ИИ. Давай сделаем это сейчас!")
             else:
                 st.success(f"Привет! Я обрабатываю твой запрос '{user_input}' по коту Василию. Мой мозг сейчас настраивается!")
 
