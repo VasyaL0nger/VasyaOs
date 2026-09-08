@@ -15,24 +15,21 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# Функция для генерации уникального текста через бесплатный ИИ
+# Новая более надежная функция для общения с ИИ
 def ask_ai(system_prompt, user_question):
     try:
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_question}
-        ]
-        response = requests.post(
-            "https://pollinations.ai",
-            json={"messages": messages, "model": "openai-large"},
-            timeout=15
-        )
+        # Используем альтернативный стабильный эндпоинт Pollinations
+        prompt = f"System: {system_prompt}\nUser: {user_question}\nAnswer in Russian strictly."
+        encoded_prompt = urllib.parse.quote(prompt)
+        url = f"https://pollinations.ai{encoded_prompt}?model=openai"
+        
+        response = requests.get(url, timeout=10)
         if response.status_code == 200:
             return response.text
         else:
-            return "Мяу... Мой кошачий мозг устал. Попробуй еще раз через минуту!"
+            return "Мяу... Сервер занят. Принеси мне пельмешек и попробуй нажать кнопку еще раз!"
     except:
-        return "Ошибка связи с кошачьим разумом. Проверь интернет!"
+        return "Василий ушел спать на кресло. Нажми кнопку отправки еще раз!"
 
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
@@ -45,44 +42,44 @@ model_choice = st.sidebar.selectbox(
     ["VasyaTheCat (Болталка)", "VasyaExpert (Вопросы)", "VasyaAI (Энциклопедия)", "VasyaLyrics (Поэт)", "CanvasVasya (Арт)"]
 )
 
-# Логика для каждой модели
+# Настройка системных промптов
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
-    st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени и сон.")
-    system_prompt = f"Ты — сам кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, по-королевски, слегка высокомерно, используй кошачьи повадки, иногда вставляй 'мяу' и требуй пельмени или пожаловаться на жизнь на кресле. Пиши строго на русском языке."
+    st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
+    system_prompt = f"Ты — сам кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, по-королевски, используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени. Отвечай только по-русски."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
-    system_prompt = f"Ты — эксперт-аналитик по коту Василию. Твоя задача — четко, грамотно и подробно отвечать на вопросы пользователей, используя только реальные факты из этой официальной базы данных: {VASYA_BIO}. Пиши строго на русском языке."
+    system_prompt = f"Ты — эксперт по коту Василию. Четко и подробно отвечай на вопросы, используя факты: {VASYA_BIO}. Отвечай только по-русски."
 
 elif model_choice == "VasyaAI (Энциклопедия)":
     st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
-    system_prompt = f"Ты — вежливый искусственный интеллект-энциклопедия 'VasyaAI'. Твоя цель — уважительно и интересно рассказывать гостям сайта про кота Василия на основе фактов: {VASYA_BIO}. Пиши строго на русском языке."
+    system_prompt = f"Ты — вежливый ИИ-гид. Уважительно рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Отвечай только по-русски."
 
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
-    st.info("Поэт-песенник. Напишите ему тему или слово, и он сочинит смешной стих или рэп про Васю.")
-    system_prompt = f"Ты — поэт-песенник. Сочиняй смешные, забавные стихи, четверостишия или рэп-куплеты про кота Василия на основе его привычек (пельмени, костер, кресло, усы): {VASYA_BIO}. Обязательно рифмуй строки. Пиши строго на русском языке."
+    st.info("Поэт-песенник. Напишите ему слово, и он сочинит смешной стих про Васю.")
+    system_prompt = f"Ты — поэт. Сочиняй смешные стихи с хорошей рифмой про кота Василия на основе его привычек: {VASYA_BIO}. Отвечай только по-русски."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
     st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
     
-    user_prompt = st.text_input("Напишите сюжет для картинки (например: Кот сидит у костра):", "Кот Василий ест пельмени")
+    user_prompt = st.text_input("Напишите сюжет для картинки (на английском работает лучше всего!):", "Cat eating dumplings near fire")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
-            with st.spinner("Василий берет в лапы кисть... Подождите немного..."):
-                # Кодируем текст и добавляем случайный seed (время), чтобы картинки всегда были разными
-                current_time = int(time.time())
-                encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, white whiskers, {user_prompt}, digital art, highly detailed")
-                image_url = f"https://pollinations.ai{encoded_prompt}?width=1024&height=1024&nologo=true&seed={current_time}"
+            with st.spinner("Василий рисует..."):
+                # Генерируем случайный seed, чтобы картинка обновилась и не ломалась
+                seed = int(time.time())
+                encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, 3d render, cute, highly detailed")
+                # Изменили параметры ссылки на более стабильные
+                image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&nofeed=true"
                 
-                # Отображаем картинку
-                st.image(image_url, caption=f"Арт: {user_prompt}")
-
+                # Показываем результат
+                st.image(image_url, caption=f"Ваш арт по запросу: {user_prompt}")
 
 # Работа чата для текстовых моделей
 if model_choice != "CanvasVasya (Арт)":
@@ -91,9 +88,7 @@ if model_choice != "CanvasVasya (Арт)":
     if st.button("Отправить"):
         if user_input:
             with st.spinner("Василий думает..."):
-                # Получаем настоящий живой ответ от ИИ
                 ai_response = ask_ai(system_prompt, user_input)
-                
                 st.write("---")
                 st.write(f"**Вы:** {user_input}")
                 st.write("**VasyaOS:**")
