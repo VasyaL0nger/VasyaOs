@@ -15,38 +15,34 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# Профессиональная функция для связи с ИИ через официальный бесплатный сервер Hugging Face
+# Официальное и стабильное подключение через ваш бесплатный токен Hugging Face
+# Обязательно сохраните кавычки по бокам!
+HF_TOKEN = "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"
+
 def ask_free_ai(system_prompt, user_question):
     try:
-        # Формируем четкую структуру для ИИ
-        full_prompt = f"<|system|>\n{system_prompt}\n<|user|>\n{user_question}\n<|assistant|>\n"
+        # Используем продвинутую модель Qwen, которая отлично понимает русский язык
+        API_URL = "https://huggingface.co"
+        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
         
-        # Используем стабильный публичный API без ключей
+        full_prompt = f"<|im_start|>system\n{system_prompt}\n<|im_end|>\n<|im_start|>user\n{user_question}\n<|im_end|>\n<|im_start|>assistant\n"
+        
         payload = {
             "inputs": full_prompt,
-            "parameters": {"max_new_tokens": 250, "temperature": 0.7}
+            "parameters": {"max_new_tokens": 150, "temperature": 0.6}
         }
-        response = requests.post(
-            "https://huggingface.co",
-            json=payload,
-            timeout=10
-        )
+        
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=10)
         
         if response.status_code == 200:
             res_json = response.json()
             output = res_json[0]['generated_text']
-            # Отрезаем промпт, чтобы показать только чистый ответ ИИ
-            clean_answer = output.split("<|assistant|>\n")[-1].strip()
+            clean_answer = output.split("<|im_start|>assistant\n")[-1].replace("<|im_end|>", "").strip()
             return clean_answer
         else:
-            # Резервный сервер, если основной перегружен
-            encoded_text = urllib.parse.quote(f"{system_prompt}. Ответь на вопрос: {user_question}")
-            fallback_res = requests.get(f"https://pollinations.ai{encoded_text}?model=mistral", timeout=10)
-            if fallback_res.status_code == 200:
-                return fallback_res.text
-            return "Мяу! Я умываюсь лапкой. Нажми кнопку еще раз, я обязательно отвечу!"
-    except:
-        return "Мяу! Нажми отправить еще раз, связь с кошачьим космосом восстанавливается!"
+            return "Мяу... Мой кошачий сервер немного задумался. Нажми кнопку еще раз, я отвечу!"
+    except Exception as e:
+        return "Мяу! Нажми отправить еще раз, я умывал лапку и пропустил вопрос!"
 
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
@@ -63,7 +59,7 @@ model_choice = st.sidebar.selectbox(
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
-    system_prompt = f"Ты — сам кот Василий. Твои факты: {VASYA_BIO}. Отвечай лениво, гордо, по-королевски на русском языке. Всегда вставляй 'мяу' и требуй пельмени."
+    system_prompt = f"Ты — сам кот Василий. Твои факты: {VASYA_BIO}. Отвечай лениво, гордо, по-королевски на русском языке. Коротко. Всегда вставляй 'мяу' и требуй пельмени."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
@@ -78,7 +74,7 @@ elif model_choice == "VasyaAI (Энциклопедия)":
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
     st.info("Поэт-песенник. Напишите ему слово, и он сочинит смешной стих про Васю.")
-    system_prompt = f"Ты — поэт. Сочиняй забавные и смешные стихотворения с хорошей рифмой про кота Василия на русском языке. Используй факты: {VASYA_BIO}."
+    system_prompt = f"Ты — поэт. Сочиняй забавные и смешные короткие стихотворения с хорошей рифмой про кота Василия на русском языке. Используй факты: {VASYA_BIO}."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
@@ -86,7 +82,6 @@ elif model_choice == "CanvasVasya (Арт)":
     
     user_prompt = st.text_input("Напишите сюжет для картинки на английском:", "fluffy cat eating dumplings near campfire")
     
-    # Чтобы на экране не было пустого сломанного квадрата, сразу формируем рабочую заставку
     seed = 42
     encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, digital art, cute style, highly detailed")
     image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&nofeed=true"
