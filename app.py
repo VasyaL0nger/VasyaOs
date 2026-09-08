@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+import google.generativeai as genai
 import urllib.parse
 import time
 
@@ -15,28 +15,16 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# Новая более надежная функция для общения с ИИ
-def ask_ai(system_prompt, user_question):
-    try:
-        # Используем альтернативный стабильный эндпоинт Pollinations
-        prompt = f"System: {system_prompt}\nUser: {user_question}\nAnswer in Russian strictly."
-        encoded_prompt = urllib.parse.quote(prompt)
-        url = f"https://pollinations.ai{encoded_prompt}?model=openai"
-        
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            return response.text
-        else:
-            return "Мяу... Сервер занят. Принеси мне пельмешек и попробуй нажать кнопку еще раз!"
-    except:
-        return "Василий ушел спать на кресло. Нажми кнопку отправки еще раз!"
-
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
 st.write("Добро пожаловать в мультимодельную систему, посвященную коту Василию.")
 
+# Поле для ввода вашего ключа Google прямо на сайте (чтобы это было безопасно)
+st.sidebar.header("🔑 Настройка ИИ")
+api_key = st.sidebar.text_input("Вставьте ваш Google API Key:", type="password")
+
 # Боковая панель для выбора моделей
-st.sidebar.header("Доступные модели")
+st.sidebar.header("🤖 Доступные модели")
 model_choice = st.sidebar.selectbox(
     "Выберите модель для работы:",
     ["VasyaTheCat (Болталка)", "VasyaExpert (Вопросы)", "VasyaAI (Энциклопедия)", "VasyaLyrics (Поэт)", "CanvasVasya (Арт)"]
@@ -46,52 +34,59 @@ model_choice = st.sidebar.selectbox(
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
-    system_prompt = f"Ты — сам кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, по-королевски, используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени. Отвечай только по-русски."
+    system_prompt = f"Ты — кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, по-королевски, используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени. Пиши строго на русском языке."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
-    system_prompt = f"Ты — эксперт по коту Василию. Четко и подробно отвечай на вопросы, используя факты: {VASYA_BIO}. Отвечай только по-русски."
+    system_prompt = f"Ты — эксперт по коту Василию. Четко и подробно отвечай на вопросы, используя только реальные факты из этой официальной базы данных: {VASYA_BIO}. Пиши строго на русском языке."
 
 elif model_choice == "VasyaAI (Энциклопедия)":
     st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
-    system_prompt = f"Ты — вежливый ИИ-гид. Уважительно рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Отвечай только по-русски."
+    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Уважительно рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Пиши строго на русском языке."
 
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
     st.info("Поэт-песенник. Напишите ему слово, и он сочинит смешной стих про Васю.")
-    system_prompt = f"Ты — поэт. Сочиняй смешные стихи с хорошей рифмой про кота Василия на основе его привычек: {VASYA_BIO}. Отвечай только по-русски."
+    system_prompt = f"Ты — поэт. Сочиняй смешные стихи с хорошей рифмой про кота Василия на основе его привычек (пельмени, костер, кресло): {VASYA_BIO}. Пиши строго на русском языке."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
     st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
     
-    user_prompt = st.text_input("Напишите сюжет для картинки (на английском работает лучше всего!):", "Cat eating dumplings near fire")
+    user_prompt = st.text_input("Напишите сюжет для картинки (на английском, например: Cat eating dumplings near fire):", "Cat eating dumplings near fire")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
             with st.spinner("Василий рисует..."):
-                # Генерируем случайный seed, чтобы картинка обновилась и не ломалась
                 seed = int(time.time())
-                encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, 3d render, cute, highly detailed")
-                # Изменили параметры ссылки на более стабильные
-                image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&nofeed=true"
-                
-                # Показываем результат
+                encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, highly detailed, cute digital art")
+                # Подключили стабильный независимый сервер картинок
+                image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&enhance=true"
                 st.image(image_url, caption=f"Ваш арт по запросу: {user_prompt}")
 
-# Работа чата для текстовых моделей
+# Работа чата через Google Gemini
 if model_choice != "CanvasVasya (Арт)":
     user_input = st.text_input("Напишите ваше сообщение для ИИ:")
     
     if st.button("Отправить"):
-        if user_input:
+        if not api_key:
+            st.error("Пожалуйста, вставьте ваш Google API Key в левой панели сайта!")
+        elif user_input:
             with st.spinner("Василий думает..."):
-                ai_response = ask_ai(system_prompt, user_input)
-                st.write("---")
-                st.write(f"**Вы:** {user_input}")
-                st.write("**VasyaOS:**")
-                st.success(ai_response)
-
+                try:
+                    # Настройка и запуск модели Google Gemini
+                    genai.configure(api_key=api_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    full_prompt = f"{system_prompt}\n\nПользователь говорит: {user_input}\nОтветь в соответствии со своей ролью:"
+                    response = model.generate_content(full_prompt)
+                    
+                    st.write("---")
+                    st.write(f"**Вы:** {user_input}")
+                    st.write("**VasyaOS:**")
+                    st.success(response.text)
+                except Exception as e:
+                    st.error("Ошибка авторизации ключа. Проверьте, правильно ли вставлен API ключ в боковой панели.")
 
