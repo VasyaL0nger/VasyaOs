@@ -25,10 +25,9 @@ def ask_real_generative_ai(system_prompt, user_question):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_question}
             ],
-            "model": "llama", # Переключаем на стабильный сервер Llama-3
+"model": "qwen", # Переключаем на стабильный сервер Qwen
             "jsonMode": False
         }
-        
         response = requests.post(url, json=payload, timeout=15)
         
         if response.status_code == 200 and response.text:
