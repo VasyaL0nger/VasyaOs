@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
 import urllib.parse
 import time
 
@@ -15,13 +15,27 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
+# Сверхнадежная функция текстового ИИ, работающая без токенов и ключей
+def ask_free_ai(system_prompt, user_question):
+    try:
+        # Формируем единый понятный промпт для открытой нейросети
+        full_text_prompt = f"Ты работаешь в системе кота Василия. Твоя системная роль: {system_prompt}\n\nПользователь написал: {user_question}\nОтветь строго на русском языке в соответствии со своей ролью:"
+        encoded_text = urllib.parse.quote(full_text_prompt)
+        
+        # Запрос к открытому текстовому серверу
+        url = f"https://pollinations.ai{encoded_text}?model=search"
+        response = requests.get(url, timeout=15)
+        
+        if response.status_code == 200:
+            return response.text
+        else:
+            return "Мяу... Мой кошачий процессор перегружен. Попробуй нажать кнопку еще раз!"
+    except:
+        return "Василий отвлекся на пельмени. Пожалуйста, повтори отправку."
+
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
 st.write("Добро пожаловать в мультимодельную систему, посвященную коту Василию.")
-
-# ПРЯМОЕ ПОДКЛЮЧЕНИЕ КЛЮЧА ИИ (Вставьте свой ключ сюда)
-# Обязательно сохраните кавычки по бокам!
-api_key = "AQ.Ab8RN6IZuq3e4DZT4PNRSrNHN_xoYEwGpkrcRe7Wa5UDGVNa4g"
 
 # Боковая панель для выбора моделей
 st.sidebar.header("🤖 Доступные модели")
@@ -30,32 +44,32 @@ model_choice = st.sidebar.selectbox(
     ["VasyaTheCat (Болталка)", "VasyaExpert (Вопросы)", "VasyaAI (Энциклопедия)", "VasyaLyrics (Поэт)", "CanvasVasya (Арт)"]
 )
 
-# Настройка системных промптов
+# Настройка системных ролей
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
-    system_prompt = f"Ты — кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, по-королевски, используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени. Пиши строго на русском языке."
+    system_prompt = "Ты — сам кот Василий. Отвечай лениво, гордо, по-королевски. Используй кошачьи фразочки, пиши коротко, вставляй 'мяу' и требуй пельмени за общение."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
-    system_prompt = f"Ты — эксперт по коту Василию. Четко и подробно отвечай на вопросы, используя только реальные факты из этой официальной базы данных: {VASYA_BIO}. Пиши строго на русском языке."
+    system_prompt = f"Ты — эксперт по коту Василию. Используй только эти реальные факты: {VASYA_BIO}. Отвечай информативно, четко и по делу."
 
 elif model_choice == "VasyaAI (Энциклопедия)":
     st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
-    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Уважительно рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Пиши строго на русском языке."
+    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Твоя цель — уважительно, развернуто и красиво рассказать про кота Василия на основе фактов: {VASYA_BIO}."
 
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
     st.info("Поэт-песенник. Напишите ему слово, и он сочинит смешной стих про Васю.")
-    system_prompt = f"Ты — поэт. Сочиняй смешные стихи с хорошей рифмой про кота Василия на основе его привычек (пельмени, костер, кресло): {VASYA_BIO}. Пиши строго на русском языке."
+    system_prompt = f"Ты — поэт. Сочиняй забавные и смешные стихотворения с хорошей рифмой про кота Василия на основе его любви к пельменям, сну и кострам: {VASYA_BIO}."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
     st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
     
-    user_prompt = st.text_input("Напишите сюжет для картинки (лучше всего писать на английском):", "Cat eating dumplings near fire")
+    user_prompt = st.text_input("Напишите сюжет для картинки (на английском, например: Cat near campfire):", "Cat eating dumplings near fire")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
@@ -65,24 +79,15 @@ elif model_choice == "CanvasVasya (Арт)":
                 image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&enhance=true"
                 st.image(image_url, caption=f"Ваш арт по запросу: {user_prompt}")
 
-# Работа чата через прописанный Google Gemini
+# Работа чата через открытый бесплатный ИИ
 if model_choice != "CanvasVasya (Арт)":
     user_input = st.text_input("Напишите ваше сообщение для ИИ:")
     
     if st.button("Отправить"):
         if user_input:
             with st.spinner("Василий думает..."):
-                try:
-                    # Настройка и запуск ИИ
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-1.5-flash')
-                    
-                    full_prompt = f"{system_prompt}\n\nПользователь говорит: {user_input}\nОтветь в соответствии со своей ролью:"
-                    response = model.generate_content(full_prompt)
-                    
-                    st.write("---")
-                    st.write(f"**Вы:** {user_input}")
-                    st.write("**VasyaOS:**")
-                    st.success(response.text)
-                except Exception as e:
-                    st.error("Что-то не так с кодом или ключом. Перепроверьте правильность токена AIzaSy.")
+                ai_response = ask_free_ai(system_prompt, user_input)
+                st.write("---")
+                st.write(f"**Вы:** {user_input}")
+                st.write("**VasyaOS:**")
+                st.success(ai_response)
