@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Настройка страницы сайта
-st.set_page_config(page_title="VasyaOS", page_icon="🐾", layout="centered")
+st.set_page_config(page_title="VasyaOS", page_icon="cat", layout="centered")
 
 # Данные о Василии для ИИ
 VASYA_BIO = """
@@ -13,11 +13,11 @@ VASYA_BIO = """
 """
 
 # Шапка сайта
-st.title("🐾 VasyaOS — Интеллектуальная Система Кота Василия")
-st.write("Добро пожаловать в мультимодельную систему, посвященную коту Василию!")
+st.title("VasyaOS — Интеллектуальная Система Кота Василия")
+st.write("Добро пожаловать в мультимодельную систему, посвященную коту Василию.")
 
 # Боковая панель для выбора моделей
-st.sidebar.header("🤖 Доступные модели")
+st.sidebar.header("Доступные модели")
 model_choice = st.sidebar.selectbox(
     "Выберите модель для работы:",
     ["VasyaTheCat (Болталка)", "VasyaExpert (Вопросы)", "VasyaAI (Энциклопедия)", "VasyaLyrics (Поэт)", "CanvasVasya (Арт)"]
@@ -25,23 +25,23 @@ model_choice = st.sidebar.selectbox(
 
 # Описание выбранной модели
 if model_choice == "VasyaTheCat (Болталка)":
-    st.subheader("💬 Модель: VasyaTheCat")
+    st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, но любит собеседников (особенно если у них есть пельмени).")
 
 elif model_choice == "VasyaExpert (Вопросы)":
-    st.subheader("🧠 Модель: VasyaExpert")
+    st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
 
 elif model_choice == "VasyaAI (Энциклопедия)":
-    st.subheader("ℹ️ Модель: VasyaAI")
+    st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
 
 elif model_choice == "VasyaLyrics (Поэт)":
-    st.subheader("🎵 Модель: VasyaLyrics")
-    st.info("Поэт-песенник. Напишите ему любое слово, и он сочинят смешной стих или рэп про Васю.")
+    st.subheader("Модель: VasyaLyrics")
+    st.info("Поэт-песенник. Напишите ему любое слово, и он сочинит смешной стих или рэп про Васю.")
 
 elif model_choice == "CanvasVasya (Арт)":
-    st.subheader("🎨 Модель: CanvasVasya")
+    st.subheader("Модель: CanvasVasya")
     st.info("Генератор картинок. Скоро здесь можно будет рисовать Васю в космосе!")
     st.write("Напишите, какую картинку с Васей вы хотите сгенерировать в будущем:")
     st.text_input("Например: Вася ест пельмени на пляже")
@@ -64,3 +64,4 @@ if model_choice != "CanvasVasya (Арт)":
                 st.success(f"Стих на тему '{user_input}':\n\nКот Василий на кровати тихо-тихо спал,\nПро '{user_input}' лениво усом колыхал.\nВдруг почуял запах теплых пельменей —\nИ примчался к кухне тигра побыстрей!")
             else:
                 st.success(f"Привет! Я обрабатываю твой запрос '{user_input}' по коту Василию. Мой мозг сейчас настраивается!")
+
