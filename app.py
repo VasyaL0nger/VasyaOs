@@ -19,9 +19,9 @@ VASYA_BIO = (
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
 st.write("Добро пожаловать в мультимодельную систему, посвященную коту Василию.")
 
-# Поле для ввода вашего ключа Google прямо на сайте (чтобы это было безопасно)
-st.sidebar.header("🔑 Настройка ИИ")
-api_key = st.sidebar.text_input("Вставьте ваш Google API Key:", type="password")
+# ПРЯМОЕ ПОДКЛЮЧЕНИЕ КЛЮЧА ИИ (Вставьте свой ключ сюда)
+# Обязательно сохраните кавычки по бокам!
+api_key = "AQ.Ab8RN6IZuq3e4DZT4PNRSrNHN_xoYEwGpkrcRe7Wa5UDGVNa4g"
 
 # Боковая панель для выбора моделей
 st.sidebar.header("🤖 Доступные модели")
@@ -55,28 +55,25 @@ elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
     st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
     
-    user_prompt = st.text_input("Напишите сюжет для картинки (на английском, например: Cat eating dumplings near fire):", "Cat eating dumplings near fire")
+    user_prompt = st.text_input("Напишите сюжет для картинки (лучше всего писать на английском):", "Cat eating dumplings near fire")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
             with st.spinner("Василий рисует..."):
                 seed = int(time.time())
                 encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, highly detailed, cute digital art")
-                # Подключили стабильный независимый сервер картинок
                 image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&enhance=true"
                 st.image(image_url, caption=f"Ваш арт по запросу: {user_prompt}")
 
-# Работа чата через Google Gemini
+# Работа чата через прописанный Google Gemini
 if model_choice != "CanvasVasya (Арт)":
     user_input = st.text_input("Напишите ваше сообщение для ИИ:")
     
     if st.button("Отправить"):
-        if not api_key:
-            st.error("Пожалуйста, вставьте ваш Google API Key в левой панели сайта!")
-        elif user_input:
+        if user_input:
             with st.spinner("Василий думает..."):
                 try:
-                    # Настройка и запуск модели Google Gemini
+                    # Настройка и запуск ИИ
                     genai.configure(api_key=api_key)
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     
@@ -88,5 +85,4 @@ if model_choice != "CanvasVasya (Арт)":
                     st.write("**VasyaOS:**")
                     st.success(response.text)
                 except Exception as e:
-                    st.error("Ошибка авторизации ключа. Проверьте, правильно ли вставлен API ключ в боковой панели.")
-
+                    st.error("Что-то не так с кодом или ключом. Перепроверьте правильность токена AIzaSy.")
