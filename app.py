@@ -15,23 +15,25 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# Сверхнадежная функция текстового ИИ, работающая без токенов и ключей
+# Исправленная правильная функция текстового ИИ через POST-запрос
 def ask_free_ai(system_prompt, user_question):
     try:
-        # Формируем единый понятный промпт для открытой нейросети
-        full_text_prompt = f"Ты работаешь в системе кота Василия. Твоя системная роль: {system_prompt}\n\nПользователь написал: {user_question}\nОтветь строго на русском языке в соответствии со своей ролью:"
-        encoded_text = urllib.parse.quote(full_text_prompt)
-        
-        # Запрос к открытому текстовому серверу
-        url = f"https://pollinations.ai{encoded_text}?model=search"
-        response = requests.get(url, timeout=15)
-        
-        if response.status_code == 200:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_question}
+        ]
+        # Отправляем структурированный POST-запрос вместо проблемной длинной ссылки
+        response = requests.post(
+            "https://text.pollinations.ai/",
+            json={"messages": messages, "model": "openai-large"},
+            timeout=15
+        )
+        if response.status_code == 200 and response.text:
             return response.text
         else:
-            return "Мяу... Мой кошачий процессор перегружен. Попробуй нажать кнопку еще раз!"
-    except:
-        return "Василий отвлекся на пельмени. Пожалуйста, повтори отправку."
+            return "Мяу... Мой кошачий процессор завис. Пожалуйста, нажми на кнопку еще раз!"
+    except Exception as e:
+        return f"Василий ушел за пельменями на кухню. Нажми кнопку повторно!"
 
 # Шапка сайта
 st.title("VasyaOS — Интеллектуальная Система Кота Василия")
@@ -48,38 +50,51 @@ model_choice = st.sidebar.selectbox(
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
-    system_prompt = "Ты — сам кот Василий. Отвечай лениво, гордо, по-королевски. Используй кошачьи фразочки, пиши коротко, вставляй 'мяу' и требуй пельмени за общение."
+    system_prompt = "Ты — сам кот Василий. Отвечай лениво, гордо, по-королевски. Используй кошачьи фразочки, пиши коротко, вставляй 'мяу' и требуй пельмени за общение. Отвечай только на русском языке."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
-    system_prompt = f"Ты — эксперт по коту Василию. Используй только эти реальные факты: {VASYA_BIO}. Отвечай информативно, четко и по делу."
+    system_prompt = f"Ты — эксперт по коту Василию. Используй только эти реальные факты: {VASYA_BIO}. Отвечай информативно, четко и по делу на русском языке."
 
 elif model_choice == "VasyaAI (Энциклопедия)":
     st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
-    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Твоя цель — уважительно, развернуто и красиво рассказать про кота Василия на основе фактов: {VASYA_BIO}."
+    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Твоя цель — уважительно, развернуто и красиво рассказать про кота Василия на основе фактов: {VASYA_BIO}. Отвечай на русском языке."
 
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
     st.info("Поэт-песенник. Напишите ему слово, и он сочинит смешной стих про Васю.")
-    system_prompt = f"Ты — поэт. Сочиняй забавные и смешные стихотворения с хорошей рифмой про кота Василия на основе его любви к пельменям, сну и кострам: {VASYA_BIO}."
+    system_prompt = f"Ты — поэт. Сочиняй забавные и смешные стихотворения с хорошей рифмой про кота Василия на русском языке, опираясь на его привычки: {VASYA_BIO}."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
-    st.info("Генератор картинок. Здесь вы можете сгенерировать любое изображение с Васей.")
+    st.info("Генератор картинок. Сюжет можно писать на русском языке — система сама подготовит его для ИИ!")
     
-    user_prompt = st.text_input("Напишите сюжет для картинки (на английском, например: Cat near campfire):", "Cat eating dumplings near fire")
+    user_prompt = st.text_input("Напишите сюжет для картинки:", "Кот Василий ест пельмени у костра")
     
     if st.button("Сгенерировать арт"):
         if user_prompt:
-            with st.spinner("Василий рисует..."):
+            with st.spinner("Василий берет в лапы кисть... Подождите немного..."):
+                # Автоматически переводим русский запрос в понятные теги для англоязычного генератора
+                translation_prompt = f"Translate this prompt into a simple list of english keywords for image generation: '{user_prompt}'. Output ONLY keywords separated by commas, no chat, no intro."
+                english_keywords = ask_free_ai("You are a translator translator.", translation_prompt)
+                
+                # Если перевод временно сбоит, используем безопасный стандартный промпт
+                if "Ошибка" in english_keywords or "Мяу" in english_keywords or len(english_keywords) > 200:
+                    english_keywords = "cat eating dumplings near fire"
+                
                 seed = int(time.time())
-                encoded_prompt = urllib.parse.quote(f"fluffy brown tabby cat, green eyes, {user_prompt}, highly detailed, cute digital art")
-                image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&enhance=true"
-                st.image(image_url, caption=f"Ваш арт по запросу: {user_prompt}")
+                # Собираем чистую ссылку для генератора
+                final_prompt = f"fluffy brown tabby cat, green eyes, {english_keywords.strip()}, digital art, cute style, highly detailed"
+                encoded_prompt = urllib.parse.quote(final_prompt)
+                
+                image_url = f"https://pollinations.ai{encoded_prompt}?width=512&height=512&seed={seed}&nofeed=true"
+                
+                # Отображаем картинку на сайте
+                st.image(image_url, caption=f"Арт по вашему сюжету: {user_prompt}")
 
-# Работа чата через открытый бесплатный ИИ
+# Работа чата для текстовых моделей
 if model_choice != "CanvasVasya (Арт)":
     user_input = st.text_input("Напишите ваше сообщение для ИИ:")
     
