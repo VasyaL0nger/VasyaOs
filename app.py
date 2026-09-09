@@ -15,44 +15,28 @@ VASYA_BIO = (
     "Привычки: Спит на кресле или кровати, мастерски выпрашивает еду гипнотическим взглядом."
 )
 
-# ВАШ ЛИЧНЫЙ ТОКЕН HUGGING FACE (Прописан жестко и безопасно)
-HF_TOKEN = "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"
-
-# Функция прямого и легального общения с ИИ
-def ask_direct_hf_ai(system_prompt, user_question):
+# Функция общения с ИИ БЕЗ ИСПОЛЬЗОВАНИЯ КЛЮЧЕЙ И ТОКЕНОВ (Сверхнадежно)
+def ask_direct_free_ai(system_prompt, user_question):
     try:
-        # Используем мощную открытую модель от Alibaba, которая идеально знает русский язык
-        API_URL = "https://huggingface.co"
-        headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+        # Формируем структурированный запрос для открытой языковой модели
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_question}
+        ]
         
-        # Собираем правильный формат диалога
-        full_prompt = f"<|im_start|>system\n{system_prompt}\n<|im_end|>\n<|im_start|>user\n{user_question}\n<|im_end|>\n<|im_start|>assistant\n"
+        # Отправляем запрос на публичный стабильный сервер Pollinations, модель openai-large
+        response = requests.post(
+            "https://pollinations.ai",
+            json={"messages": messages, "model": "openai-large", "jsonMode": False},
+            timeout=15
+        )
         
-        payload = {
-            "inputs": full_prompt,
-            "parameters": {"max_new_tokens": 200, "temperature": 0.7, "return_full_text": False}
-        }
-        
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=15)
-        
-        if response.status_code == 200:
-            res_json = response.json()
-            # Извлекаем только чистый ответ ИИ
-            if isinstance(res_json, list) and len(res_json) > 0:
-                output = res_json[0].get('generated_text', '')
-            else:
-                output = res_json.get('generated_text', '')
-            
-            clean_answer = output.split("<|im_start|>assistant\n")[-1].replace("<|im_end|>", "").strip()
-            if not clean_answer:
-                clean_answer = output.strip()
-            return clean_answer
-        elif response.status_code == 503:
-            return "Мяу... Мой кошачий суперкомпьютер сейчас просыпается и загружается. Нажми кнопку еще раз через 10 секунд!"
+        if response.status_code == 200 and response.text:
+            return response.text
         else:
-            return f"Мяу... Сервер вернул код {response.status_code}. Давай попробуем отправить сообщение еще раз."
+            return "Мяу... Мой кошачий разум немного задумался. Нажми кнопку еще раз, я отвечу!"
     except Exception as e:
-        return "Василий умывается лапкой и отвлекся. Пожалуйста, нажми на кнопку повторно!"
+        return "Василий отвлекся на пельмешек. Пожалуйста, нажми на кнопку повторно!"
 
 # Шапка сайта
 st.title("🐾 VasyaIQ — Интеллектуальная Система Кота Василия")
@@ -69,22 +53,22 @@ model_choice = st.sidebar.selectbox(
 if model_choice == "VasyaTheCat (Болталка)":
     st.subheader("Модель: VasyaTheCat")
     st.info("Василий общается лично с вами. Он ленив, слегка высокомерен, отвечает как кошачий король, обожает пельмени.")
-    system_prompt = f"Ты — сам кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, гордо, по-королевски, как харизматичный кот. Используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени за общение. Ты — настоящий ИИ, думай и рассуждай свободно на любые темы, но в образе кота. Отвечай строго на русском языке."
+    system_prompt = f"Ты — сам кот Василий. Твоя биография: {VASYA_BIO}. Отвечай лениво, гордо, по-королевски, как харизматичный кот. Используй кошачьи повадки, пиши коротко, вставляй 'мяу' и требуй пельмени за общение. Ты — настоящий ИИ, думай и рассуждай свободно на любые темы, но в образе кота. Отвечай СТРОГО на русском языке."
 
 elif model_choice == "VasyaExpert (Вопросы)":
     st.subheader("Модель: VasyaExpert")
     st.info("Технический эксперт по Василию. Ответит на любые вопросы о его рационе, привычках и здоровье.")
-    system_prompt = f"Ты — эксперт по коту Василию. Четко, подробно и развернуто отвечай на любые сложные вопросы пользователей, используя реальные факты из базы данных: {VASYA_BIO}. Связывай любые темы с логикой жизни Василия. Отвечай строго на русском языке."
+    system_prompt = f"Ты — эксперт по коту Василию. Четко, подробно и развернуто отвечай на любые сложные вопросы пользователей, используя реальные факты из базы данных: {VASYA_BIO}. Связывай любые темы с логикой жизни Василия. Отвечай СТРОГО на русском языке."
 
 elif model_choice == "VasyaAI (Энциклопедия)":
     st.subheader("Модель: VasyaAI")
     st.info("Официальная вежливая модель. Рассказывает гостям сайта биографию и историю Василия.")
-    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Уважительно, красиво и развернуто рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Если пользователь спрашивает отвлеченные вещи, вежливо связывай их с историей кота. Отвечай строго на русском языке."
+    system_prompt = f"Ты — вежливый ИИ-гид 'VasyaAI'. Уважительно, красиво и развернуто рассказывай про кота Василия на основе фактов: {VASYA_BIO}. Если пользователь спрашивает отвлеченные вещи, вежливо связывай их с историей кота. Отвечай СТРОГО на русском языке."
 
 elif model_choice == "VasyaLyrics (Поэт)":
     st.subheader("Модель: VasyaLyrics")
     st.info("Поэт-песенник. Напишите ему слово или тему, и он сочинит смешной стих про Васю.")
-    system_prompt = f"Ты — талантливый поэт. Сочиняй абсолютно новые, забавные, складные короткие стихотворения с четкой рифмой про кота Василия, используя его привычки (пельмени, костер, кресло): {VASYA_BIO}. Пиши новые стихи на любую тему, которую предложит пользователь. Отвечай строго на русском языке."
+    system_prompt = f"Ты — талантливый поэт. Сочиняй абсолютно новые, забавные, короткие стихотворения с четкой рифмой про кота Василия, используя его привычки (пельмени, костер, кресло): {VASYA_BIO}. Пиши новые стихи на любую тему, которую предложит пользователь. Отвечай СТРОГО на русском языке."
 
 elif model_choice == "CanvasVasya (Арт)":
     st.subheader("Модель: CanvasVasya")
@@ -109,9 +93,8 @@ if model_choice != "CanvasVasya (Арт)":
     if st.button("Отправить запрос"):
         if user_input:
             with st.spinner("VasyaIQ обрабатывает данные через нейросеть..."):
-                response = ask_direct_hf_ai(system_prompt, user_input)
+                response = ask_direct_free_ai(system_prompt, user_input)
                 st.write("---")
                 st.write(f"**Вы:** {user_input}")
                 st.write(f"**VasyaIQ:**")
                 st.success(response)
-
