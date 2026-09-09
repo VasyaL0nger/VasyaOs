@@ -27,7 +27,7 @@ def ask_direct_free_ai(system_prompt, user_question):
         # Отправляем запрос на публичный стабильный сервер Pollinations, модель openai-large
         response = requests.post(
             "https://pollinations.ai",
-            json={"messages": messages, "model": "openai-large", "jsonMode": False},
+            json={"messages": messages, "model": "mistral", "jsonMode": False},
             timeout=15
         )
         
